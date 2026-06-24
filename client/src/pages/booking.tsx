@@ -1,3 +1,5 @@
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -42,6 +44,11 @@ export default function BookingPage() {
     setIsSubmitting(true);
     try {
       await api.submitBooking(values);
+
+      await addDoc(collection(db, "bookings"), {
+  ...values,
+  createdAt: new Date()
+      });
       toast({
         title: "Booking Confirmed!",
         description: "We have received your request and will contact you shortly.",
