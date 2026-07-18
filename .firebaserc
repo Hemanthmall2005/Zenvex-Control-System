@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "zenvex-pesticontorl"
-  }
+  },
+  "targets": {
+    "zenvex-pesticontorl": {
+      "hosting": {
+        "zenvex": [
+          "zenvex-pesticontrol"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

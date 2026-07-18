@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -28,6 +28,10 @@ const formSchema = z.object({
 export default function BookingPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [location, setLocation] = useState({
+  latitude: 0,
+  longitude: 0,
+});
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,16 +43,36 @@ export default function BookingPage() {
       address: "",
     },
   });
+  useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+      console.log("Latitude:",position.coords.latitude);
+      console.log("Longitude:",position.coords.longitude);
+      setLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    },
+    (error) => {
+      console.log("Location Error:",error);
+    }
+  );
+}, []);
+
+  async function 
+  onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
       await api.submitBooking(values);
+      console.log("Booking Location:",location);
 
       await addDoc(collection(db, "bookings"), {
   ...values,
-  createdAt: new Date()
-      });
+  latitude: location?.latitude,
+  longitude: location?.longitude,
+  createdAt: new Date(),
+});
       toast({
         title: "Booking Confirmed!",
         description: "We have received your request and will contact you shortly.",
@@ -97,7 +121,7 @@ export default function BookingPage() {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="+91 98765 43210" {...field} />
+                        <Input placeholder="+91 88866 66745" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

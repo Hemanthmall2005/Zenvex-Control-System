@@ -1,35 +1,74 @@
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, Shield, Phone, Mail, MapPin, Facebook, Twitter, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { signOut,onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const handleLogout = async () => {
+  await signOut(auth);
+  setLocation("/");
+};
+const [user, setUser] = useState(null);
+const [isAdmin, setIsAdmin] = useState(false);
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
+
+    if (currentUser) {
+      const docRef = doc(db, "users", currentUser.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists() && docSnap.data().role === "admin") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } else {
+      setIsAdmin(false);
+    }
+  });
+
+  return unsubscribe;
+}, []);
 
   const navItems = [
-    { label: "Home", path: "/" },
-    { label: "About", path: "/about" },
-    { label: "Services", path: "/services" },
-    { label: "Industries", path: "/industries" },
-    { label: "Knowledge", path: "/knowledge" },
-    { label: "Contact", path: "/contact" },
-  ];
+  { label: "Home", path: "/home" },
+  { label: "About", path: "/about" },
+  { label: "Services", path: "/services" },
+  { label: "Industries", path: "/industries" },
+  { label: "Knowledge", path: "/knowledge" },
+  { label: "Contact", path: "/contact" },
 
+  ...(isAdmin
+    ? [{ label: "Bookings", path: "/bookings" },
+        { label: "Attendance", path: "/attendance-admin" },
+        { label: "Employees", path: "/employees" },
+    ]
+    : []),
+];
   return (
     <div className="min-h-screen flex flex-col font-sans">
       {/* Top Bar */}
       <div className="bg-primary text-primary-foreground py-2 text-sm hidden md:block">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex space-x-6">
-            <span className="flex items-center gap-2"><Phone size={14} /> +91 98765 43210</span>
+            <span className="flex items-center gap-2"><Phone size={14} /> +91 88866 66745</span>
             <span className="flex items-center gap-2"><Mail size={14} /> info@zenvex.com</span>
           </div>
           <div className="flex space-x-4">
             <Link href="/attendance" className="hover:text-accent transition-colors">Employee Portal</Link>
             <span className="mx-2">|</span>
-            <Link href="/login" className="hover:text-accent transition-colors">Login</Link>
+            {!user && (
+            <Link href="/home" className="hover:text-accent transition-colors">Login</Link>
+            )}
           </div>
         </div>
       </div>
@@ -60,6 +99,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Book Now
               </Button>
             </Link>
+            {user && (
+            <Button
+                    variant="destructive"
+                      onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+            )}
           </nav>
 
           {/* Mobile Nav */}
@@ -86,6 +133,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <div className="pt-6 border-t mt-4 flex flex-col gap-4">
                   <Link href="/login" className="text-muted-foreground hover:text-primary">Admin Login</Link>
+                  {user && (
+                  <Button
+                      variant="destructive"
+                      onClick={handleLogout}
+                  >
+                      Logout
+                      </Button>
+                  )}
                   <Link href="/attendance" className="text-muted-foreground hover:text-primary">Staff Attendance</Link>
                 </div>
               </div>
@@ -149,7 +204,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="text-primary" size={18} />
-                  <span className="text-slate-400">+91 98765 43210</span>
+                  <span className="text-slate-400">+91 88866 66745</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="text-primary" size={18} />

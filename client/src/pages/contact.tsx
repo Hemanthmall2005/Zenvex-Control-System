@@ -64,7 +64,7 @@ export default function ContactPage() {
                 <div className="bg-primary/10 p-3 rounded-full text-primary"><Phone size={24} /></div>
                 <div>
                   <h4 className="font-bold text-slate-900 mb-1">Phone</h4>
-                  <p className="text-slate-600">+91 98765 43210</p>
+                  <p className="text-slate-600">+91 88866 66745</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

@@ -1,7 +1,9 @@
+import { signInWithPopup, signInWithEmailAndPassword} from "firebase/auth";
+import { auth, googleProvider, db } from "@/lib/firebase";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { api } from "@/lib/mock-api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, Shield } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+
 
 const formSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -25,20 +28,75 @@ export default function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsSubmitting(true);
-    try {
-      await api.login(values);
-      toast({ title: "Login Successful", description: "Welcome back, Admin." });
-      // In a real app, we'd store the token here
-      setTimeout(() => setLocation("/"), 1000);
-    } catch (error) {
-      toast({ title: "Login Failed", description: "Invalid credentials. Try admin@zenvex.com / admin", variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+async function onSubmit(values: z.infer<typeof formSchema>) {
+  setIsSubmitting(true);
 
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      values.email,
+      values.password
+    );
+
+    const user = userCredential.user;
+
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+  const role = docSnap.data().role;
+
+  if (role === "admin") {
+    setLocation("/attendance-admin");
+  } else if (role === "employee") {
+    setLocation("/attendance");
+  } else {
+    setLocation("/home");
+  }
+}
+
+  } catch (error) {
+    toast({
+      title: "Login Failed",
+      description: "Invalid email or password",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+async function handleGoogleLogin() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      await setDoc(docRef, {
+        email: user.email,
+        role: "user",
+      });
+
+      setLocation("/");
+      return;
+    }
+
+    const role = docSnap.data().role;
+
+if (role === "admin") {
+  setLocation("/attendance-admin");
+} else if (role === "employee") {
+  setLocation("/attendance");
+} else {
+  setLocation("/home");
+}
+
+  } catch (error) {
+    console.error(error);
+  }
+}
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
@@ -46,8 +104,8 @@ export default function LoginPage() {
           <div className="mx-auto h-12 w-12 text-primary flex items-center justify-center bg-primary/10 rounded-full mb-4">
             <Shield size={32} />
           </div>
-          <h2 className="text-3xl font-bold font-display text-slate-900">Admin Login</h2>
-          <p className="mt-2 text-sm text-slate-600">Sign in to manage bookings and attendance.</p>
+          <h2 className="text-3xl font-bold font-display text-slate-900">Zenvex Login</h2>
+          <p className="mt-2 text-sm text-slate-600">Login as Customer,Employee or Admin.</p>
         </div>
         
         <Form {...form}>
@@ -75,12 +133,29 @@ export default function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Sign in"}
+              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : "Employee / Admin Login"}
             </Button>
-            
-            <div className="text-center text-xs text-slate-400">
-              Demo Credentials: admin@zenvex.com / admin
-            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-3"
+              onClick={handleGoogleLogin}
+            >
+              Customer Login with google
+            </Button>
+            <div className="text-center mt-4">
+        <p className="text-sm text-gray-600">
+        Don't have an account?
+      </p>
+
+    <Button
+    variant="link"
+    onClick={() => setLocation("/signup")}
+  >
+    Create Customer Account
+  </Button>
+</div>
           </form>
         </Form>
       </div>

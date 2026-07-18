@@ -160,7 +160,7 @@ export default function Home() {
             <div className="bg-primary rounded-3xl p-8 lg:p-12 text-center transform rotate-1 hover:rotate-0 transition-transform duration-500">
               <h4 className="text-2xl font-bold mb-6">Need Immediate Assistance?</h4>
               <p className="text-primary-foreground/90 mb-8 text-lg">Our experts are available 24/7 to handle emergency infestations.</p>
-              <div className="text-5xl font-bold mb-8">98765 43210</div>
+              <div className="text-5xl font-bold mb-8">88866 66745</div>
               <Link href="/contact">
                 <Button variant="secondary" size="lg" className="w-full text-lg h-14 font-bold text-primary hover:text-primary/90">
                   Contact Us Now

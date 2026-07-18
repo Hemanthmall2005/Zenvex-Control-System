@@ -7,7 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, Clock, UserCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { collection,
+          addDoc,
+          serverTimestamp,
+          query,
+          where,
+          getDocs,
+          updateDoc,
+          orderBy,
+          onSnapshot,
+          } from "firebase/firestore";
 
 const formSchema = z.object({
   employeeId: z.string().min(3, "Employee ID is required"),
@@ -18,16 +29,117 @@ export default function AttendancePage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastAction, setLastAction] = useState<"in" | "out" | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [presentCount, setPresentCount] = useState(0);
+  const [absentCount, setAbsentCount] = useState(0);
+  const [location, setLocation] = useState({
+  latitude: 0,
+  longitude: 0,
+});
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { employeeId: "", pin: "" },
   });
+  useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      setLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+}, []);
+
+useEffect(() => {
+  const employeeId = form.watch("employeeId");
+
+  if (!employeeId) return;
+
+  const q = query(
+    collection(db, "attendance"),
+    where("employeeId", "==", employeeId),
+    orderBy("checkInTime", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+  const data = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  setHistory(data);
+
+  const today = new Date().toDateString();
+  const uniqueEmployees = new Set();
+
+  data.forEach((item: any) => {
+    if (
+      item.checkInTime &&
+      item.checkInTime.toDate().toDateString() === today
+    ) {
+      uniqueEmployees.add(item.employeeId);
+    }
+  });
+
+  setPresentCount(uniqueEmployees.size);
+
+  // Temporary
+  setAbsentCount(0);
+});
+  return () => unsubscribe();
+}, [form.watch("employeeId")]);
 
   async function onSubmit(values: z.infer<typeof formSchema>, action: "in" | "out") {
     setIsSubmitting(true);
     try {
+      const q = query(
+  collection(db, "employees"),
+  where("employeeId", "==", values.employeeId),
+  where("secretKey", "==", values.pin)
+);
+
+const employee = await getDocs(q);
+
+if (employee.empty) {
+  throw new Error("Invalid Employee ID or Secret Key");
+}
       await api.submitAttendance({ ...values, action, timestamp: new Date().toISOString() });
+    if (action === "in") {
+  await addDoc(collection(db, "attendance"), {
+    employeeId: values.employeeId,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    checkInTime: serverTimestamp(),
+    checkOutTime: null,
+    status: "Checked In",
+  });
+} else {
+  const q = query(
+    collection(db, "attendance"),
+    where("employeeId", "==", values.employeeId),
+    where("status", "==", "Checked In")
+  );
+
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    const attendanceDoc = snapshot.docs[0];
+
+    await updateDoc(attendanceDoc.ref, {
+      checkOutTime: serverTimestamp(),
+      status: "Checked Out",
+      checkOutLatitude: location.latitude,
+      checkOutLongitude: location.longitude,
+    });
+  } else {
+    throw new Error("No active Check In found");
+  }
+}
       setLastAction(action);
       toast({ 
         title: action === "in" ? "Checked In" : "Checked Out", 
@@ -107,6 +219,87 @@ export default function AttendancePage() {
             </span>
           </div>
         )}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+  <div className="border rounded-lg p-4 bg-green-50">
+    <h3 className="text-green-700 font-semibold">
+      Present
+    </h3>
+
+    <p className="text-3xl font-bold">
+      {presentCount}
+    </p>
+  </div>
+
+  <div className="border rounded-lg p-4 bg-red-50">
+    <h3 className="text-red-700 font-semibold">
+      Absent
+    </h3>
+
+    <p className="text-3xl font-bold">
+      {absentCount}
+    </p>
+  </div>
+</div>
+        <div className="mt-8">
+  <h3 className="text-lg font-bold mb-3">Attendance History</h3>
+
+  {history.length === 0 ? (
+    <p className="text-gray-500">No attendance records found.</p>
+  ) : (
+    <div className="space-y-3">
+      {history.map((item: any) => (
+        <div
+          key={item.id}
+          className="border rounded-lg p-3"
+        >
+          <p>
+            <strong>Status:</strong> {item.status}
+          </p>
+
+          <p>
+            <strong>Check In:</strong>{" "}
+            {item.checkInTime?.toDate().toLocaleString()}
+          </p>
+
+          {item.latitude && item.longitude && (
+  <Button
+    variant="outline"
+    className="mt-2"
+    onClick={() =>
+      window.open(
+        `https://www.google.com/maps?q=${item.latitude},${item.longitude}`,
+        "_blank"
+      )
+    }
+  >
+    📍 View Check-In Location
+  </Button>
+)}
+          <p>
+            <strong>Check Out:</strong>{" "}
+            {item.checkOutTime
+              ? item.checkOutTime.toDate().toLocaleString()
+              : "--"}
+          </p>
+          {item.checkOutLatitude && item.checkOutLongitude && (
+  <Button
+    variant="outline"
+    className="mt-2"
+    onClick={() =>
+      window.open(
+        `https://www.google.com/maps?q=${item.checkOutLatitude},${item.checkOutLongitude}`,
+        "_blank"
+      )
+    }
+  >
+    📍 View Check-Out Location
+  </Button>
+)}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
       </div>
     </div>
   );
