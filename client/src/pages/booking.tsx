@@ -67,23 +67,30 @@ export default function BookingPage() {
       await api.submitBooking(values);
       console.log("Booking Location:",location);
 
-      await addDoc(collection(db, "bookings"), {
+    await addDoc(collection(db, "bookings"), {
   ...values,
   latitude: location?.latitude,
   longitude: location?.longitude,
   createdAt: new Date(),
 });
+
+console.log("✅ Firestore Save Success");
+
+toast({
       toast({
         title: "Booking Confirmed!",
         description: "We have received your request and will contact you shortly.",
       });
       form.reset();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+  } catch (error) {
+  console.error("Firestore Error:", error);
+
+  toast({
+    title: "Error",
+    description: "Something went wrong. Please try again.",
+    variant: "destructive",
+  });
+} finally {
     } finally {
       setIsSubmitting(false);
     }
