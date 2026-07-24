@@ -63,34 +63,37 @@ export default function BookingPage() {
   async function 
   onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    try {
-      await api.submitBooking(values);
-      console.log("Booking Location:",location);
+  try {
+  await api.submitBooking(values);
 
-    await addDoc(collection(db, "bookings"), {
-  ...values,
-  latitude: location?.latitude,
-  longitude: location?.longitude,
-  createdAt: new Date(),
-});
+  console.log("Booking Location:", location);
 
-console.log("✅ Firestore Save Success");
+  const docRef = await addDoc(collection(db, "bookings"), {
+    ...values,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    createdAt: new Date(),
+  });
 
-toast({
-      toast({
-        title: "Booking Confirmed!",
-        description: "We have received your request and will contact you shortly.",
-      });
-      form.reset();
-  } catch (error) {
+  console.log("Firestore Success:", docRef.id);
+
+  toast({
+    title: "Booking Confirmed!",
+    description: "Booking Saved Successfully",
+  });
+
+  form.reset();
+
+} catch (error) {
   console.error("Firestore Error:", error);
 
   toast({
     title: "Error",
-    description: "Something went wrong. Please try again.",
+    description: String(error),
     variant: "destructive",
   });
-} finally {
+}
+finally {
     } finally {
       setIsSubmitting(false);
     }
