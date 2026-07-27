@@ -60,8 +60,7 @@ export default function BookingPage() {
   );
 }, []);
 
-  async function 
-  onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
   try {
   await api.submitBooking(values);
@@ -92,9 +91,7 @@ export default function BookingPage() {
     description: String(error),
     variant: "destructive",
   });
-}
-finally {
-    } finally {
+} finally {
       setIsSubmitting(false);
     }
   }
