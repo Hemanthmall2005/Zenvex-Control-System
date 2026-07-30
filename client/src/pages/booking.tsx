@@ -76,6 +76,21 @@ export default function BookingPage() {
 
   console.log("Firestore Success:", docRef.id);
 
+  await fetch("/api/send-telegram", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: values.name,
+    phone: values.phone,
+    email: values.email,
+    address: values.address,
+    serviceId: values.serviceId,
+    date: values.date.toLocaleDateString(),
+  }),
+});
+
   toast({
     title: "Booking Confirmed!",
     description: "Booking Saved Successfully",
