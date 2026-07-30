@@ -59,18 +59,32 @@ app.post("/api/send-telegram", async (req, res) => {
 📅 Date: ${date}
 `;
 
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-      }),
-    });
+    const response = await fetch(
+  `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text: message,
+    }),
+  }
+);
 
-    res.json({ success: true });
+const result = await response.json();
+
+console.log("Telegram Response:", result);
+
+if (!response.ok) {
+  throw new Error(JSON.stringify(result));
+}
+
+res.json({
+  success: true,
+  telegram: result,
+});
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false });
