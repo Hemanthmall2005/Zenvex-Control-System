@@ -85,11 +85,15 @@ res.json({
   success: true,
   telegram: result,
 });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false });
-  }
-});
+ } catch (error: any) {
+  console.error("Telegram Error:", error);
+
+  res.status(500).json({
+    success: false,
+    error: error.message,
+    stack: error.stack,
+  });
+}
   // prefix all routes with /api
 
   // use storage to perform CRUD operations on the storage interface
