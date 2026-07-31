@@ -88,10 +88,9 @@ res.json({
  } catch (error: any) {
   console.error("Telegram Error:", error);
 
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
-    error: error.message,
-    stack: error.stack,
+    error: String(error),
   });
 }
   // prefix all routes with /api
