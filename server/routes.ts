@@ -93,6 +93,7 @@ res.json({
     error: String(error),
   });
 }
+});
   // prefix all routes with /api
 
   // use storage to perform CRUD operations on the storage interface
