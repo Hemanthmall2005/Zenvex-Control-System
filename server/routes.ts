@@ -48,6 +48,10 @@ app.post("/api/send-telegram", async (req, res) => {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+    console.log(
+  `https://api.telegram.org/bot${BOT_TOKEN}/getMe`
+);
+
     const message = `
 🔔 NEW BOOKING
 
