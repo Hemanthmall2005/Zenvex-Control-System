@@ -67,7 +67,13 @@ useEffect(() => {
             <Link href="/attendance" className="hover:text-accent transition-colors">Employee Portal</Link>
             <span className="mx-2">|</span>
             {!user && (
-            <Link href="/home" className="hover:text-accent transition-colors">Login</Link>
+            <Button
+            variant="ghost"
+            className="text-white hover:text-yellow-300"
+            onClick={() => setLocation("/login")}
+>
+            Login
+          </Button>
             )}
           </div>
         </div>
@@ -132,7 +138,16 @@ useEffect(() => {
                   <Button className="w-full text-lg py-6">Book a Service</Button>
                 </Link>
                 <div className="pt-6 border-t mt-4 flex flex-col gap-4">
-                  <Link href="/login" className="text-muted-foreground hover:text-primary">Admin Login</Link>
+                  <Button
+              variant="ghost"
+                className="justify-start"
+                onClick={() => {
+              setIsMobileOpen(false);
+              window.location.href ="/login";
+              }}
+>
+            Admin Login
+          </Button>
                   {user && (
                   <Button
                       variant="destructive"

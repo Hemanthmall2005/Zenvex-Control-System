@@ -76,7 +76,7 @@ export default function BookingPage() {
 
   console.log("Firestore Success:", docRef.id);
 
- const response = await fetch("/api/send-telegram", {
+  const response = await fetch("/api/send-telegram", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -94,10 +94,6 @@ export default function BookingPage() {
 const telegramResult = await response.json();
 
 console.log("Telegram API:", telegramResult);
-
-if (!response.ok) {
-  throw new Error(JSON.stringify(telegramResult));
-}
 
   toast({
     title: "Booking Confirmed!",

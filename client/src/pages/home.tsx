@@ -20,9 +20,12 @@ export default function Home() {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold font-display leading-[1.1] text-slate-900">
-                Protect Your Home <br/>
-                <span className="text-primary">From Pests.</span>
+                Zenvex Pesticontrol Pvt Ltd
               </h1>
+
+              <h2 className="text-2xl lg:text-3xl font-semibold text-primary mt-4">
+                Professional Pest Control Services
+              </h2>
               
               <p className="text-xl text-slate-600 max-w-lg leading-relaxed">
                 Zenvex provides hospital-grade, eco-friendly pest control solutions for homes and businesses. We guarantee a pest-free environment.

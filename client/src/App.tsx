@@ -140,35 +140,35 @@ function Router() {
       <Switch>
 
         <Route path="/">
-          <UserProtectedRoute component={Home} />
+          <Home />
         </Route>
 
         <Route path="/home">
-          <UserProtectedRoute component={Home} />
+          <Home />
         </Route>
 
         <Route path="/about">
-          <UserProtectedRoute component={About} />
+          <About />
         </Route>
 
         <Route path="/services">
-          <UserProtectedRoute component={ServicesPage} />
+          <ServicesPage />
         </Route>
 
         <Route path="/industries">
-          <UserProtectedRoute component={IndustriesPage} />
+          <IndustriesPage />
         </Route>
 
         <Route path="/knowledge">
-          <UserProtectedRoute component={KnowledgePage} />
+          <KnowledgePage />
         </Route>
 
         <Route path="/contact">
-          <UserProtectedRoute component={ContactPage} />
+          <ContactPage />
         </Route>
 
         <Route path="/book-service">
-          <UserProtectedRoute component={BookingPage} />
+          <BookingPage />
         </Route>
 
         <Route path="/bookings">
@@ -183,6 +183,10 @@ function Router() {
         <AdminProtectedRoute component={AttendanceAdmin} />
         </Route>
 
+        <Route path="/login">
+        <LoginPage />
+        </Route>
+        
         <Route path="/signup">
         <Signup/>
         </Route>
