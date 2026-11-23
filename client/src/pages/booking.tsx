@@ -76,24 +76,57 @@ export default function BookingPage() {
 
   console.log("Firestore Success:", docRef.id);
 
-  const response = await fetch("/api/send-telegram", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    name: values.name,
-    phone: values.phone,
-    email: values.email,
-    address: values.address,
-    serviceId: values.serviceId,
-    date: values.date.toLocaleDateString(),
-  }),
-});
+ 
+  // Customer booking confirmation
+  toast({
+    title: "Booking Confirmed!",
+    description: "Your booking has been saved successfully.",
+  });
 
-const telegramResult = await response.json();
+  form.reset();
 
-console.log("Telegram API:", telegramResult);
+  // Telegram notification - handle separately
+  try {
+   const response = await fetch("https://zenvex-control-system.onrender.com/api/send-telegram", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        address: values.address,
+        serviceId: values.serviceId,
+        date: values.date.toLocaleDateString(),
+      }),
+    });
+
+    const responseText = await response.text();
+
+    let telegramResult;
+
+    try {
+      telegramResult = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        "Backend returned HTML instead of JSON"
+      );
+    }
+
+    if (!response.ok || !telegramResult.success) {
+      throw new Error(
+        telegramResult.error || "Telegram notification failed"
+      );
+    }
+
+    console.log("Telegram notification sent!");
+  } catch (telegramError) {
+    console.error(
+      "Telegram Notification Error:",
+      telegramError
+    );
+  }
 
   toast({
     title: "Booking Confirmed!",
